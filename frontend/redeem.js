@@ -170,12 +170,10 @@ class GiftCodeRedeemer {
     try {
       const requestData = {
         code: code,
-        recipient: email,
+        recipient_email: email,
+        recipient_phone: phone,
         metadata: { 
-          source: "webpage",
-          phone: phone,
-          email_confirmed: true,
-          phone_confirmed: true
+          source: "webpage"
         }
       };
 
