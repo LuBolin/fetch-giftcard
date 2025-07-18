@@ -27,10 +27,14 @@ def serve_html():
 @app.route("/redeem", methods=["POST"])
 def redeem_endpoint():
     data = request.get_json()
+    print(f"Received data: {data}")
+    
     code = data.get("code")
     recipient_email = data.get("recipient_email")
     recipient_phone = data.get("recipient_phone")
     metadata = data.get("metadata", {})
+
+    print(f"Parsed - code: {code}, email: {recipient_email}, phone: {recipient_phone}")
 
     if not code or not recipient_email or not recipient_phone:
         return jsonify({"success": False, "message": "Missing code or recipient information"}), 400
@@ -39,7 +43,8 @@ def redeem_endpoint():
         _ = supabase.redeem_code(code, recipient_email, recipient_phone, metadata=metadata)
         return jsonify({"success": True, "message": "Code redeemed successfully!"})
     except Exception as e:
-        return jsonify({"success": False, "message": f"Server error: {repr(e)}"}), 500
+        print(f"Error in redeem_endpoint: {type(e).__name__}: {str(e)}")
+        return jsonify({"success": False, "message": f"Server error: {str(e)}"}), 500
 
 
 if __name__ == "__main__":

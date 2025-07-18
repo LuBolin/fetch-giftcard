@@ -38,8 +38,12 @@ class SupabaseClient(supabase.Client):
             raise ValueError(f"Code '{code}' has already been redeemed.")
         
         created_at = row.get("created_at")
-        expiry_date = datetime.fromisoformat(created_at) + timedelta(days=self.expiry_months * 30)
-        if datetime.now() > expiry_date:
+        # Parse the created_at datetime and make comparison timezone-aware
+        created_datetime = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+        expiry_date = created_datetime + timedelta(days=self.expiry_months * 30)
+        current_time = datetime.now(expiry_date.tzinfo)  # Use same timezone as expiry_date
+        
+        if current_time > expiry_date:
             raise ValueError(f"Code '{code}' has expired on {expiry_date.isoformat()}.")
     
         data = {
@@ -83,6 +87,17 @@ class SupabaseClient(supabase.Client):
 
 
 # Load secrets
-# load_dotenv()
-# SUPABASE_URL = os.getenv("SUPABASE_URL")
-# SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+from dotenv import load_dotenv
+import os
+load_dotenv()
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# simulate redeem
+if __name__ == "__main__":
+    client = SupabaseClient(SUPABASE_URL, SUPABASE_KEY, 12)
+    # Example usage
+    try:
+        client.redeem_code("B2DC5BH0LIRW0LY8", "andy518420@gmail.com", "85330618")
+    except Exception as e:
+        print(f"Error: {e}")
