@@ -74,7 +74,8 @@ class SupabaseClient(supabase.Client):
         try:
             response = self.table("gift_codes").update({
                 "is_redeemed": False,
-                "recipient": None,
+                "recipient_email": None,
+                "recipient_phone": None,
                 "redeemed_at": None
             }).eq("code", code).execute()
             if response.data:

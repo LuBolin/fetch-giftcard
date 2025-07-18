@@ -10,6 +10,9 @@ CORS(app, origins=[
     "http://localhost:8080",       # If serving frontend via python -m http.server
     "http://127.0.0.1:8080",
     "http://localhost:5500",       # If using VSCode Live Server
+    "http://localhost:3000",       # Common dev server port
+    "http://127.0.0.1:5500",       # VSCode Live Server alternative
+    "file://",                     # If opening HTML file directly
     "null"                         # If opening redeem.html directly from file://
 ])
 

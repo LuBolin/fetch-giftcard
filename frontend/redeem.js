@@ -105,13 +105,19 @@ class GiftCodeRedeemer {
     
     this.redeemBtn.disabled = !allFieldsFilled || !emailsMatch || !phonesMatch;
     
+    // Only show validation warnings if we're not showing a success/error message
+    if (this.resultEl.textContent.includes("✅") || this.resultEl.textContent.includes("❌")) {
+      // Don't clear success/error messages
+      return;
+    }
+    
     // Show validation warnings - prioritize email mismatch, then phone mismatch
     if (confirmEmail && email && !emailsMatch) {
       this.displayResult("⚠️ Emails do not match", "orange");
     } else if (confirmPhone && phone && !phonesMatch) {
       this.displayResult("⚠️ Phone numbers do not match", "orange");
     } else {
-      // Clear any previous error messages when everything is OK
+      // Clear any previous validation messages when everything is OK
       this.resultEl.textContent = "";
     }
   }
@@ -127,8 +133,10 @@ class GiftCodeRedeemer {
   }
 
   displayResult(message, color) {
+    console.log("displayResult called with:", message, color);
     this.resultEl.textContent = message;
     this.resultEl.style.color = color;
+    console.log("Result element updated:", this.resultEl.textContent);
   }
 
   async redeemCode() {
@@ -177,7 +185,14 @@ class GiftCodeRedeemer {
         }
       };
 
-      const response = await fetch("https://fetch-giftcard.onrender.com/redeem", {
+      // Use local backend if running locally, otherwise use production
+      const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+        ? 'http://localhost:5000/redeem'
+        : 'https://fetch-giftcard.onrender.com/redeem';
+
+      console.log("Using API URL:", API_URL);
+
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -185,7 +200,11 @@ class GiftCodeRedeemer {
         body: JSON.stringify(requestData)
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+      
       const result = await response.json();
+      console.log("Response data:", result);
 
       if (response.ok && result.success) {
         this.displayResult("✅ " + result.message, "green");
