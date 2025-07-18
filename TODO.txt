@@ -1,0 +1,11 @@
+Add 免责（不是我来弄）
+
+Add expiry date to codes
+这个需要每批卡不同吗，还是比如所有卡都5年限制
+
+Add easy batch updating of metadata (who did we give the card to, at what time)
+这个也就是要在created之外加一个issued_at还有issued_to，然后这两个信息要能批量更改，就好了对吧
+
+Verify email/username exists
+需要验证email存在吗，一方面之前说允许包括还没注册的email，然后我们会email那个email，叫他注册账号，然后账号里会有钱
+但是另一方面，要是email打错了的话，就等于我们寄出的email不会被任何人收到，钱就会类似消失了

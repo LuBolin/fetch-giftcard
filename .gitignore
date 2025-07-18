@@ -52,5 +52,5 @@ logs/
 *.sqlite
 *.sqlite3
 
-# Gift codes
-codes.txt
+# Gift cards
+gift_cards.csv

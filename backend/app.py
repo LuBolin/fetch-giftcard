@@ -6,6 +6,7 @@ from supabase_tool import SupabaseClient
 app = Flask(__name__, static_folder="../frontend", static_url_path="/")
 
 CORS(app, origins=[
+    "https://fetch-giftcard.onrender.com",  # Production domain
     "http://localhost:8080",       # If serving frontend via python -m http.server
     "http://127.0.0.1:8080",
     "http://localhost:5500",       # If using VSCode Live Server
@@ -14,8 +15,9 @@ CORS(app, origins=[
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+EXPIRY_MONTHS = int(os.getenv("EXPIRY_MONTHS", 12))
 
-supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
+supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY, EXPIRY_MONTHS)
 
 
 @app.route("/")
@@ -26,14 +28,15 @@ def serve_html():
 def redeem_endpoint():
     data = request.get_json()
     code = data.get("code")
-    recipient = data.get("recipient")
+    recipient_email = data.get("recipient_email")
+    recipient_phone = data.get("recipient_phone")
     metadata = data.get("metadata", {})
 
-    if not code or not recipient:
-        return jsonify({"success": False, "message": "Missing code or recipient"}), 400
+    if not code or not recipient_email or not recipient_phone:
+        return jsonify({"success": False, "message": "Missing code or recipient information"}), 400
 
     try:
-        _ = supabase.redeem_code(code, recipient, metadata=metadata)
+        _ = supabase.redeem_code(code, recipient_email, recipient_phone, metadata=metadata)
         return jsonify({"success": True, "message": "Code redeemed successfully!"})
     except Exception as e:
         return jsonify({"success": False, "message": f"Server error: {repr(e)}"}), 500

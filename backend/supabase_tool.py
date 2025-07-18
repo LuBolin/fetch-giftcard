@@ -1,20 +1,21 @@
 from datetime import datetime
-import os
 import supabase
-from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
-# Load secrets
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# columns: code, uuid, created_at, is_redeemed, redeemed_at, recipient_email, recipient_phone, metadata
 
 class SupabaseClient(supabase.Client):
 
-    def upload_codes(self, codes, metadata = None):
-        for code in codes:
+    def __init__(self, url, key, expiry_months):
+        super().__init__(url, key)
+        self.expiry_months = expiry_months
+
+    def upload_codes(self, uuid_codes, metadata = None):
+        # codes are uuid - giftcode pairs
+        for uuid, code in uuid_codes:
             data = {
                 "code": code,
-                "is_redeemed": False,
+                "uuid": uuid,
                 "metadata": metadata 
             }
 
@@ -25,7 +26,7 @@ class SupabaseClient(supabase.Client):
                 error_message = e.message
                 print(f"❌ Error inserting {code}: {error_message}")
 
-    def redeem_code(self, code, recipient, metadata=None):
+    def redeem_code(self, code, recipient_email, recipient_phone, metadata=None):
         check_res = self.table("gift_codes").select("*").eq("code", code).execute()
         rows = check_res.data
 
@@ -36,10 +37,16 @@ class SupabaseClient(supabase.Client):
         if row.get("is_redeemed"):
             raise ValueError(f"Code '{code}' has already been redeemed.")
         
+        created_at = row.get("created_at")
+        expiry_date = datetime.fromisoformat(created_at) + timedelta(days=self.expiry_months * 30)
+        if datetime.now() > expiry_date:
+            raise ValueError(f"Code '{code}' has expired on {expiry_date.isoformat()}.")
+    
         data = {
-            "recipient": recipient,
             "is_redeemed": True,
             "redeemed_at": datetime.now().isoformat(),
+            "recipient_email": recipient_email,
+            "recipient_phone": recipient_phone,
             "metadata": metadata
         }
         
@@ -53,7 +60,7 @@ class SupabaseClient(supabase.Client):
             if not data:
                 raise ValueError(f"Code {code} not found or already redeemed.")
             updated_row = data[0]
-            print(f"✅ Redeemed {code} for user {recipient}")
+            print(f"✅ Redeemed {code} for email {recipient_email}")
             print(f"Updated row: {updated_row}")
         except Exception as e:
             raise e
@@ -73,3 +80,9 @@ class SupabaseClient(supabase.Client):
         except Exception as e:
             error_message = e.message if hasattr(e, 'message') else str(e)
             print(f"❌ Error resetting {code}: {error_message}")
+
+
+# Load secrets
+# load_dotenv()
+# SUPABASE_URL = os.getenv("SUPABASE_URL")
+# SUPABASE_KEY = os.getenv("SUPABASE_KEY")

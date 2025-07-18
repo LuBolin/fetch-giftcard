@@ -1,15 +1,23 @@
+import csv
 import os
 from supabase_tool import SupabaseClient
 
 
-def read_codes_from_file(filename="codes.txt"):
-    with open(filename, "r") as f:
-        return [line.strip() for line in f if line.strip()]
-  
+
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+EXPIRY_MONTHS = int(os.getenv("EXPIRY_MONTHS", 12))
 
-code_list = read_codes_from_file()
-recent_codes = code_list[-10:]  # Get the last 10 codes
-supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
-supabase.upload_codes(recent_codes)
+supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY, EXPIRY_MONTHS)
+
+def read_uuid_giftcards(filepath):
+    """Read UUID and gift code pairs from a CSV file"""
+    uuid_codes = []
+    if os.path.exists(filepath):
+        with open(filepath, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                uuid_codes.append((row['uuid'], row['gift_code']))
+    return uuid_codes
+
+supabase.upload_codes(read_uuid_giftcards("gift_cards.csv"))
