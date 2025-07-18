@@ -8,16 +8,85 @@ class GiftCodeRedeemer {
     this.redeemBtn = document.getElementById("redeemBtn");
     this.resultEl = document.getElementById("result");
 
+    // Initially disable confirmation fields
+    this.confirmEmailInput.disabled = true;
+    this.confirmPhoneInput.disabled = true;
+
     this.setupEventListeners();
+    this.preventCopyPaste();
   }
 
   setupEventListeners() {
     this.codeInput.addEventListener("input", () => this.checkFields());
-    this.emailInput.addEventListener("input", () => this.checkFields());
+    this.emailInput.addEventListener("input", () => this.handleEmailInput());
     this.confirmEmailInput.addEventListener("input", () => this.checkFields());
-    this.phoneInput.addEventListener("input", () => this.checkFields());
+    this.phoneInput.addEventListener("input", () => this.handlePhoneInput());
     this.confirmPhoneInput.addEventListener("input", () => this.checkFields());
     this.redeemBtn.addEventListener("click", () => this.redeemCode());
+  }
+
+  handleEmailInput() {
+    const email = this.emailInput.value.trim();
+    
+    // Enable/disable confirm email field based on email input
+    if (email) {
+      this.confirmEmailInput.disabled = false;
+    } else {
+      this.confirmEmailInput.disabled = true;
+      this.confirmEmailInput.value = "";
+    }
+    
+    this.checkFields();
+  }
+
+  handlePhoneInput() {
+    const phone = this.phoneInput.value.trim();
+    
+    // Enable/disable confirm phone field based on phone input
+    if (phone) {
+      this.confirmPhoneInput.disabled = false;
+    } else {
+      this.confirmPhoneInput.disabled = true;
+      this.confirmPhoneInput.value = "";
+    }
+    
+    this.checkFields();
+  }
+
+  preventCopyPaste() {
+    const fields = [this.emailInput, this.confirmEmailInput, this.phoneInput, this.confirmPhoneInput];
+    
+    fields.forEach(field => {
+      // Prevent copy (Ctrl+C)
+      field.addEventListener('copy', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Prevent paste (Ctrl+V)
+      field.addEventListener('paste', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Prevent cut (Ctrl+X)
+      field.addEventListener('cut', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Prevent right-click context menu
+      field.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+      });
+      
+      // Prevent drag and drop
+      field.addEventListener('drop', (e) => {
+        e.preventDefault();
+        return false;
+      });
+    });
   }
 
   checkFields() {
@@ -27,19 +96,22 @@ class GiftCodeRedeemer {
     const phone = this.phoneInput.value.trim();
     const confirmPhone = this.confirmPhoneInput.value.trim();
     
+    // Check matching conditions
+    const emailsMatch = !confirmEmail || !email || email === confirmEmail;
+    const phonesMatch = !confirmPhone || !phone || phone === confirmPhone;
+    
     // All fields must be filled and emails/phones must match
     const allFieldsFilled = code && email && confirmEmail && phone && confirmPhone;
-    const emailsMatch = email === confirmEmail;
-    const phonesMatch = phone === confirmPhone;
     
     this.redeemBtn.disabled = !allFieldsFilled || !emailsMatch || !phonesMatch;
     
-    // Show validation warnings
-    if (confirmEmail && !emailsMatch) {
+    // Show validation warnings - prioritize email mismatch, then phone mismatch
+    if (confirmEmail && email && !emailsMatch) {
       this.displayResult("⚠️ Emails do not match", "orange");
-    } else if (confirmPhone && !phonesMatch) {
+    } else if (confirmPhone && phone && !phonesMatch) {
       this.displayResult("⚠️ Phone numbers do not match", "orange");
-    } else if (confirmEmail && confirmPhone && emailsMatch && phonesMatch && allFieldsFilled) {
+    } else {
+      // Clear any previous error messages when everything is OK
       this.resultEl.textContent = "";
     }
   }
