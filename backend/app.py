@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 from supabase_tool import SupabaseClient
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend", static_url_path="/")
 
 CORS(app, origins=[
     "http://localhost:8080",       # If serving frontend via python -m http.server
@@ -16,6 +16,11 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
+
+
+@app.route("/")
+def serve_html():
+    return send_from_directory(app.static_folder, "redeem.html")
 
 @app.route("/redeem", methods=["POST"])
 def redeem_endpoint():
