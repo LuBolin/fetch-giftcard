@@ -73,16 +73,3 @@ class SupabaseClient(supabase.Client):
         except Exception as e:
             error_message = e.message if hasattr(e, 'message') else str(e)
             print(f"❌ Error resetting {code}: {error_message}")
-
-
-def read_codes_from_file(filename="codes.txt"):
-    with open(filename, "r") as f:
-        return [line.strip() for line in f if line.strip()]
-
-# if __name__ == "__main__":
-#     # codes = read_codes_from_file()
-#     sb_client = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
-#     # sb_client.upload_codes(codes)
-#     code = "GFT-1TO7IA4Q2J8I"  # Example code
-#     sb_client.reset_code(code)
-#     sb_client.redeem_code("GFT-1TO7IA4Q2J8I", "user@example.com", metadata={"source": "test"})
