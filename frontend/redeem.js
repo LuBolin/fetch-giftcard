@@ -208,6 +208,8 @@ class GiftCodeRedeemer {
 
       if (response.ok && result.success) {
         this.displayResult("✅ " + result.message, "green");
+        // Clear the code field on successful redemption
+        this.codeInput.value = "";
       } else {
         this.displayResult("❌ " + result.message, "red");
       }
