@@ -58,8 +58,12 @@ class GiftCodeRedeemer {
 
   filterCodeInput() {
     const currentValue = this.codeInput.value;
-    // Remove any non-alphanumeric characters and convert to uppercase
-    const filteredValue = currentValue.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    // // Remove any non-alphanumeric characters and convert to uppercase
+    // const filteredValue = currentValue.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    // Remove only dash characters and convert to uppercase
+    const filteredValue = currentValue.replace(/-/g, '').toUpperCase();
     
     // Only update if the value changed to prevent cursor jumping
     if (currentValue !== filteredValue) {
