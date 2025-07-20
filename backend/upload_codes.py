@@ -1,8 +1,10 @@
 import csv
 import os
 from supabase_tool import SupabaseClient
+from dotenv import load_dotenv
 
-
+# Load environment variables
+load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
@@ -10,14 +12,22 @@ EXPIRY_MONTHS = int(os.getenv("EXPIRY_MONTHS", 12))
 
 supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY, EXPIRY_MONTHS)
 
-def read_uuid_giftcards(filepath):
-    """Read UUID and gift code pairs from a CSV file"""
-    uuid_codes = []
+def read_gift_codes(filepath):
+    """Read gift codes from a CSV file with headers"""
+    codes = []
     if os.path.exists(filepath):
-        with open(filepath, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
+        with open(filepath, 'r', newline='') as file:
+            reader = csv.DictReader(file)
             for row in reader:
-                uuid_codes.append((row['uuid'], row['gift_code']))
-    return uuid_codes
+                if 'gift_code' in row and row['gift_code']:
+                    codes.append(row['gift_code'])
+    return codes
 
-supabase.upload_codes(read_uuid_giftcards("gift_cards.csv"))
+if __name__ == "__main__":
+    codes = read_gift_codes("gift_cards.csv")
+    print(f"Found {len(codes)} codes to upload")
+    
+    if codes:
+        supabase.upload_codes(codes)
+    else:
+        print("No codes found in gift_cards.csv")

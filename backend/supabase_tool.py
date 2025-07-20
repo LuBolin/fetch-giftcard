@@ -1,8 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import supabase
-from datetime import datetime, timedelta
 
-# columns: code, uuid, created_at, is_redeemed, redeemed_at, recipient_email, recipient_phone, metadata
+# columns: code, serial, uploaded_at, expiry_date, distributed_to, distribution_date
+# is_redeemed, redeemed_at, recipient_email, recipient_phone, metadata, 
+
+# uploaded_at, redeemed_at and distribution_date are TIMESTAMPTZ
+# expiry_date is a DATE
 
 class SupabaseClient(supabase.Client):
 
@@ -10,21 +13,24 @@ class SupabaseClient(supabase.Client):
         super().__init__(url, key)
         self.expiry_months = expiry_months
 
-    def upload_codes(self, uuid_codes, metadata = None):
-        # codes are uuid - giftcode pairs
-        for uuid, code in uuid_codes:
+    def upload_codes(self, codes, metadata = None):
+        # Prepare all data for bulk insert
+        bulk_data = []
+        for code in codes:
             data = {
                 "code": code,
-                "uuid": uuid,
                 "metadata": metadata 
             }
+            bulk_data.append(data)
 
-            try:
-                _ = self.table("gift_codes").insert(data).execute()
-                print(f"✅ Inserted {code}")
-            except Exception as e:
-                error_message = e.message
-                print(f"❌ Error inserting {code}: {error_message}")
+        try:
+            response = self.table("gift_codes").insert(bulk_data).execute()
+            print(f"✅ Successfully inserted {len(codes)} codes in bulk")
+            return response.data
+        except Exception as e:
+            error_message = e.message if hasattr(e, 'message') else str(e)
+            print(f"❌ Error bulk inserting codes: {error_message}")
+            raise e
 
     def redeem_code(self, code, recipient_email, recipient_phone, metadata=None):
         check_res = self.table("gift_codes").select("*").eq("code", code).execute()
@@ -37,18 +43,21 @@ class SupabaseClient(supabase.Client):
         if row.get("is_redeemed"):
             raise ValueError(f"Code '{code}' has already been redeemed.")
         
-        created_at = row.get("created_at")
-        # Parse the created_at datetime and make comparison timezone-aware
-        created_datetime = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-        expiry_date = created_datetime + timedelta(days=self.expiry_months * 30)
-        current_time = datetime.now(expiry_date.tzinfo)  # Use same timezone as expiry_date
-        
-        if current_time > expiry_date:
-            raise ValueError(f"Code '{code}' has expired on {expiry_date.isoformat()}.")
-    
+        expiry_date = row.get("expiry_date")
+        if expiry_date:
+            # expiry_date is a DATE field, so we compare with today's date
+            from datetime import date
+            if isinstance(expiry_date, str):
+                expiry_date_obj = datetime.fromisoformat(expiry_date.replace('Z', '')).date()
+            else:
+                expiry_date_obj = expiry_date
+            
+            if date.today() > expiry_date_obj:
+                raise ValueError(f"Code '{code}' has expired on {expiry_date_obj}.")
+
         data = {
             "is_redeemed": True,
-            "redeemed_at": datetime.now().isoformat(),
+            "redeemed_at": datetime.now(timezone.utc).isoformat(),
             "recipient_email": recipient_email,
             "recipient_phone": recipient_phone,
             "metadata": metadata
@@ -86,6 +95,43 @@ class SupabaseClient(supabase.Client):
             error_message = e.message if hasattr(e, 'message') else str(e)
             print(f"❌ Error resetting {code}: {error_message}")
 
+    def update_expiry(self, start_serial, end_serial, new_expiry_date):
+        # update all codes in the range [start_serial, end_serial] that are not redeemed
+        try:
+            # Ensure new_expiry_date is a date object for DATE field
+            if isinstance(new_expiry_date, datetime):
+                expiry_value = new_expiry_date.date().isoformat()
+            else:
+                expiry_value = new_expiry_date.isoformat()
+                
+            response = self.table("gift_codes").update({
+                "expiry_date": expiry_value
+            }).ge("serial", start_serial).le("serial", end_serial).eq("is_redeemed", False).not_.is_("serial", "null").execute()
+
+            if response.data:
+                print(f"✅ Updated expiry date for codes from {start_serial} to {end_serial}.")
+            else:
+                print(f"❌ No codes found in the range {start_serial} to {end_serial} that are not redeemed.")
+        except Exception as e:
+            error_message = e.message if hasattr(e, 'message') else str(e)
+            print(f"❌ Error updating expiry date: {error_message}")
+    
+    def distribute_cards(self, start_serial, end_serial, distributed_to, distribution_date=None):
+        if distribution_date is None:
+            distribution_date = datetime.now(timezone.utc).isoformat()
+        try:
+            response = self.table("gift_codes").update({
+                "distributed_to": distributed_to,
+                "distribution_date": distribution_date
+            }).ge("serial", start_serial).le("serial", end_serial).eq("is_redeemed", False).not_.is_("serial", "null").execute()
+
+            if response.data:
+                print(f"✅ Distributed codes from {start_serial} to {end_serial} to {distributed_to}.")
+            else:
+                print(f"❌ No codes found in the range {start_serial} to {end_serial} that are not redeemed.")
+        except Exception as e:
+            error_message = e.message if hasattr(e, 'message') else str(e)
+            print(f"❌ Error distributing cards: {error_message}")
 
 # Load secrets
 from dotenv import load_dotenv
