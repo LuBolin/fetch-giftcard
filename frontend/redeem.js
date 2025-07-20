@@ -17,7 +17,10 @@ class GiftCodeRedeemer {
   }
 
   setupEventListeners() {
-    this.codeInput.addEventListener("input", () => this.checkFields());
+    this.codeInput.addEventListener("input", () => {
+      this.filterCodeInput();
+      this.checkFields();
+    });
     this.emailInput.addEventListener("input", () => this.handleEmailInput());
     this.confirmEmailInput.addEventListener("input", () => this.checkFields());
     this.phoneInput.addEventListener("input", () => this.handlePhoneInput());
@@ -51,6 +54,17 @@ class GiftCodeRedeemer {
     }
     
     this.checkFields();
+  }
+
+  filterCodeInput() {
+    const currentValue = this.codeInput.value;
+    // Remove any non-alphanumeric characters and convert to uppercase
+    const filteredValue = currentValue.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    // Only update if the value changed to prevent cursor jumping
+    if (currentValue !== filteredValue) {
+      this.codeInput.value = filteredValue;
+    }
   }
 
   preventCopyPaste() {
