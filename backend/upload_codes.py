@@ -8,9 +8,8 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-EXPIRY_MONTHS = int(os.getenv("EXPIRY_MONTHS", 12))
 
-supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY, EXPIRY_MONTHS)
+supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
 
 def read_gift_codes(filepath):
     """Read gift codes from a CSV file with headers"""
