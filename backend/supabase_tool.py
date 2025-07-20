@@ -9,9 +9,8 @@ import supabase
 
 class SupabaseClient(supabase.Client):
 
-    def __init__(self, url, key, expiry_months):
+    def __init__(self, url, key):
         super().__init__(url, key)
-        self.expiry_months = expiry_months
 
     def upload_codes(self, codes, metadata = None):
         # Prepare all data for bulk insert
