@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta, timezone
 import supabase
 
-# columns: code, serial, uploaded_at, expiry_date, distributed_to, distribution_date
+# columns: code, serial_number, uploaded_at, expiry_date, distributed_to, distributed_at
 # is_redeemed, redeemed_at, recipient_email, recipient_phone, metadata, 
 
-# uploaded_at, redeemed_at and distribution_date are TIMESTAMPTZ
+# uploaded_at, redeemed_at and distributed_at are TIMESTAMPTZ
 # expiry_date is a DATE
 
 class SupabaseClient(supabase.Client):
@@ -94,7 +94,7 @@ class SupabaseClient(supabase.Client):
             error_message = e.message if hasattr(e, 'message') else str(e)
             print(f"❌ Error resetting {code}: {error_message}")
 
-    def update_expiry(self, start_serial, end_serial, new_expiry_date):
+    def update_expiry(self, start_serial, end_serial, new_expiry_date: datetime):
         # update all codes in the range [start_serial, end_serial] that are not redeemed
         try:
             # Ensure new_expiry_date is a date object for DATE field
@@ -105,7 +105,7 @@ class SupabaseClient(supabase.Client):
                 
             response = self.table("gift_codes").update({
                 "expiry_date": expiry_value
-            }).ge("serial", start_serial).le("serial", end_serial).eq("is_redeemed", False).not_.is_("serial", "null").execute()
+            }).gte("serial_number", start_serial).lte("serial_number", end_serial).eq("is_redeemed", False).execute()
 
             if response.data:
                 print(f"✅ Updated expiry date for codes from {start_serial} to {end_serial}.")
@@ -115,14 +115,14 @@ class SupabaseClient(supabase.Client):
             error_message = e.message if hasattr(e, 'message') else str(e)
             print(f"❌ Error updating expiry date: {error_message}")
     
-    def distribute_cards(self, start_serial, end_serial, distributed_to, distribution_date=None):
-        if distribution_date is None:
-            distribution_date = datetime.now(timezone.utc).isoformat()
+    def distribute_cards(self, start_serial, end_serial, distributed_to, distributed_at=None):
+        if distributed_at is None:
+            distributed_at = datetime.now(timezone.utc).isoformat()
         try:
             response = self.table("gift_codes").update({
                 "distributed_to": distributed_to,
-                "distribution_date": distribution_date
-            }).ge("serial", start_serial).le("serial", end_serial).eq("is_redeemed", False).not_.is_("serial", "null").execute()
+                "distributed_at": distributed_at
+            }).gte("serial_number", start_serial).lte("serial_number", end_serial).eq("is_redeemed", False).execute()
 
             if response.data:
                 print(f"✅ Distributed codes from {start_serial} to {end_serial} to {distributed_to}.")
@@ -131,19 +131,3 @@ class SupabaseClient(supabase.Client):
         except Exception as e:
             error_message = e.message if hasattr(e, 'message') else str(e)
             print(f"❌ Error distributing cards: {error_message}")
-
-# Load secrets
-from dotenv import load_dotenv
-import os
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-# simulate redeem
-if __name__ == "__main__":
-    client = SupabaseClient(SUPABASE_URL, SUPABASE_KEY, 12)
-    # Example usage
-    try:
-        client.redeem_code("B2DC5BH0LIRW0LY8", "andy518420@gmail.com", "85330618")
-    except Exception as e:
-        print(f"Error: {e}")
