@@ -1,0 +1,45 @@
+# Enable URL rewriting
+RewriteEngine On
+
+# Ensure index.html is served by default
+DirectoryIndex index.html
+
+# Handle CORS preflight requests for API
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^redeem_api\.php$ - [L]
+
+# Allow direct access to static files (HTML, CSS, JS, images)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} \.(html|css|js|jpg|jpeg|png|gif|ico)$ [NC]
+RewriteRule ^ - [L]
+
+# Allow direct access to redeem_api.php
+RewriteCond %{REQUEST_URI} ^/redeem/redeem_api\.php$ [OR]
+RewriteCond %{REQUEST_URI} ^/redeem_api\.php$
+RewriteRule ^ - [L]
+
+# Disable directory browsing
+Options -Indexes
+
+# Set PHP error reporting (for production)
+php_flag display_errors off
+php_flag log_errors on
+
+# Set timezone
+php_value date.timezone UTC
+
+# Protect sensitive files
+<FilesMatch "\.(env|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect PHP files that shouldn't be accessed directly
+<FilesMatch "^(config|SupabaseClient|SupabaseTool)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Ensure proper MIME types
+AddType text/css .css
+AddType application/javascript .js
