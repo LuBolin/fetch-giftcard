@@ -5,6 +5,10 @@ from supabase_tool import SupabaseClient
 
 app = Flask(__name__, static_folder="../frontend", static_url_path="/")
 
+###
+# To launch: flask run
+###
+
 CORS(app, origins=[
     "https://fetch-giftcard.onrender.com",  # Production domain
     "http://localhost:8080",       # If serving frontend via python -m http.server
@@ -20,7 +24,6 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
-
 
 @app.route("/")
 def serve_html():

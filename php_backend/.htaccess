@@ -1,0 +1,33 @@
+# Enable URL rewriting
+RewriteEngine On
+
+# Handle CORS preflight requests
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ index.php [L]
+
+# Route all requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Disable directory browsing
+Options -Indexes
+
+# Set PHP error reporting (comment out in production)
+php_flag display_errors off
+php_flag log_errors on
+
+# Set timezone
+php_value date.timezone UTC
+
+# Protect sensitive files
+<FilesMatch "\.(env|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect PHP files that shouldn't be accessed directly
+<FilesMatch "^(config|SupabaseClient)\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

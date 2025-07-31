@@ -1,0 +1,22 @@
+{
+    "name": "fetch-giftcard/php-backend",
+    "description": "PHP backend for Fetch Gift Card redemption system",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+        "files": [
+            "config.php",
+            "SupabaseTool.php"
+        ]
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ]
+    }
+}

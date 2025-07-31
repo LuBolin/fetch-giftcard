@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import supabase
 
 # columns: code, serial_number, uploaded_at, expiry_date, distributed_to, distributed_at
