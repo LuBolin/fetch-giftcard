@@ -66,4 +66,4 @@ def generate_gift_cards(count, output_file=CSV_FILE):
 
 
 if __name__ == "__main__":
-    generate_gift_cards(count=10)  # Modify count here
+    generate_gift_cards(count=20)  # Modify count here

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 import supabase
 
 # columns: code, serial_number, uploaded_at, expiry_date, distributed_to, distributed_at
-# is_redeemed, redeemed_at, recipient_email, recipient_phone, metadata, 
+# is_redeemed, redeemed_at, recipient_email, recipient_phone, metadata, card_value
 
 # uploaded_at, redeemed_at and distributed_at are TIMESTAMPTZ
 # expiry_date is a DATE
@@ -12,14 +12,16 @@ class SupabaseClient(supabase.Client):
     def __init__(self, url, key):
         super().__init__(url, key)
 
-    def upload_codes(self, codes, metadata = None):
+    def upload_codes(self, codes, metadata = None, card_value = None):
         # Prepare all data for bulk insert
         bulk_data = []
         for code in codes:
             data = {
                 "code": code,
-                "metadata": metadata 
+                "metadata": metadata,
             }
+            if card_value is not None:
+                data["card_value"] = card_value
             bulk_data.append(data)
 
         try:

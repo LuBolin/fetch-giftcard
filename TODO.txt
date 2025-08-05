@@ -1,4 +1,0 @@
-Add 免责（不是我来弄）
-
-Add easy batch updating of metadata (who did we give the card to, at what time)
-这个也就是要在created之外加一个issued_at还有issued_to，然后这两个信息要能批量更改，就好了对吧

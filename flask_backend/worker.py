@@ -24,15 +24,15 @@ supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
 
 # upload codes from CSV
 if __name__ == "__main__":
-    # codes = read_gift_codes("gift_cards.csv")
-    # print(f"Found {len(codes)} codes to upload")
-    
-    # if codes: supabase.upload_codes(codes)
+    codes = read_gift_codes("gift_cards.csv")
+    print(f"Found {len(codes)} codes to upload")
+    card_value = None # specify if needed, in dollars $
+    if codes: supabase.upload_codes(codes, card_value=card_value)
 
     # set expiry of serial 1 to 5 to december 31, 2025
     # expiry_datetime = datetime(2024, 12, 31, tzinfo=timezone.utc)
     # supabase.update_expiry(1, 5, expiry_datetime)
 
     # issue to "Seven-Eleven"
-    distributed_to = "Seven-Eleven"
-    supabase.distribute_cards(1, 3, distributed_to)
+    # distributed_to = "Seven-Eleven"
+    # supabase.distribute_cards(1, 3, distributed_to)
