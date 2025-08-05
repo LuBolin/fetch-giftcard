@@ -28,7 +28,9 @@ class myCleancloudClient:
             with open(os.path.join(current_dir, gift_card_file_path), "r") as file:
                 for line in file:
                     account_number = line.strip()
-                    self.GIFT_CARD_SOURCE_ACCOUNTS.append(account_number)
+                    # Skip empty lines and comments (lines starting with #)
+                    if account_number and not account_number.startswith('#'):
+                        self.GIFT_CARD_SOURCE_ACCOUNTS.append(account_number)
             if print_gift_card_source_accounts:
                 print(f"Gift card source accounts loaded from {gift_card_file_path}:")
                 print("Gift card source accounts:")

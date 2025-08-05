@@ -42,7 +42,25 @@ class SupabaseClient(supabase.Client):
 
         row = rows[0]
         if row.get("is_redeemed"):
-            raise ValueError(f"Code '{code}' has already been redeemed.")
+            redeemed_at = row.get("redeemed_at")
+            if redeemed_at:
+                # Parse the timestamp and format it nicely
+                try:
+                    if isinstance(redeemed_at, str):
+                        # Handle ISO format with or without 'Z'
+                        redeemed_datetime = datetime.fromisoformat(redeemed_at.replace('Z', '+00:00'))
+                    else:
+                        redeemed_datetime = redeemed_at
+                    
+                    # Format as a readable date and time
+                    formatted_time = redeemed_datetime.strftime("%B %d, %Y at %I:%M %p UTC")
+                    raise ValueError(f"Code '{code}' has already been redeemed on {formatted_time}.")
+                except (ValueError, TypeError):
+                    # Fallback if timestamp parsing fails
+                    raise ValueError(f"Code '{code}' has already been redeemed on {redeemed_at}.")
+            else:
+                # Fallback if no timestamp is available
+                raise ValueError(f"Code '{code}' has already been redeemed.")
         
         expiry_date = row.get("expiry_date")
         if expiry_date:

@@ -26,7 +26,7 @@ supabase = SupabaseClient(SUPABASE_URL, SUPABASE_KEY)
 if __name__ == "__main__":
     codes = read_gift_codes("gift_cards.csv")
     print(f"Found {len(codes)} codes to upload")
-    card_value = None # specify if needed, in dollars $
+    card_value = 5 # specify in dollars $
     if codes: supabase.upload_codes(codes, card_value=card_value)
 
     # set expiry of serial 1 to 5 to december 31, 2025

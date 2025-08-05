@@ -205,7 +205,7 @@ class GiftCodeRedeemer {
 
       // Use local backend if running locally, otherwise use production
       const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
-        ? 'http://localhost:5000/redeem'
+        ? `http://${window.location.hostname}:5000/redeem`  // Use same hostname as current page
         : window.location.origin + '/redeem/redeem_api.php';  // Direct PHP file in redeem subdirectory
 
       console.log("Using API URL:", API_URL);
